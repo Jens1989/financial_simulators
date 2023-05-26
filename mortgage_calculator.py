@@ -58,9 +58,19 @@ interest = [interest_amount_calc(mortgage_amount, interest_rate)]
 monthly_payment = pmt(interest_rate/12,12*mortgage_term,-mortgage_amount)
 principal = [monthly_payment-interest[-1]]
 ending_balance = [mortgage_amount-principal[-1]]
+
 overpayment_payment_series = [overpay_amount]
 
+
 for i in range(mortgage_term*12-1):
+
+    if i%12 == 0:
+        if overpay_amount*12 <= ending_balance[-1] * .1: # can maximum overpay 10% of the outstanding balance
+            pass
+        else:
+            overpay_amount = round(ending_balance[-1]*.1/12,0)
+    else:
+        pass
 
     if ending_balance[-1] > 0:
         balance.append(ending_balance[-1])
@@ -72,7 +82,7 @@ for i in range(mortgage_term*12-1):
     if i < overpay_years * 12:
         principal.append(monthly_payment-interest[-1] + overpay_amount)
         ending_balance.append(balance[-1]-principal[-1] - overpay_amount)
-        overpayment_payment_series.append(overpay_amount)
+        overpayment_payment_series.append(round(overpay_amount,0))
     else:
         principal.append(monthly_payment-interest[-1])
         ending_balance.append(balance[-1]-principal[-1])
