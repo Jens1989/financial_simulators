@@ -24,7 +24,10 @@ capital_series = [starting_capital]
 
 for i in range(years-1):
 
-    salary = salary * (1+annual_salary_increase)
+    if salary < 150000:
+        salary = salary * (1+annual_salary_increase)
+    else:
+        salary = 150000
 
     contribution = 0
 
