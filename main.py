@@ -3,34 +3,15 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 import numpy as np
 from investment_account import PensionInvestmentAccount
-
-class Property:
-    def __init__(self, value, mortgage_amount, interest_rate, overpayment_option):
-        self.value = value
-        self.mortgage_amount = mortgage_amount
-        self.interest_rate = interest_rate
-        self.overpayment_option = overpayment_option
-
-    def calculate_monthly_payment(self):
-        monthly_rate = self.interest_rate / 12 / 100
-        num_payments = 12 * 30  # 30-year mortgage
-        monthly_payment = self.mortgage_amount * (monthly_rate * (1 + monthly_rate)**num_payments) / ((1 + monthly_rate)**num_payments - 1)
-        return monthly_payment
-
-class Salary:
-    def __init__(self, net_salary, annual_increase, bonus_percentage):
-        self.net_salary = net_salary
-        self.annual_increase = annual_increase
-        self.bonus_percentage = bonus_percentage
-
-    def calculate_monthly_cash_flow(self):
-        return self.net_salary / 12
+from salary import Salary
+from mortgage_calculator import mortgage_calculator
 
 class Simulation:
-    def __init__(self):
+    def __init__(self, net_worth):
         self.investment_accounts = []
         self.properties = []
         self.salaries = []
+        self.net_worth = net_worth
 
     def add_investment_account(self, account):
         self.investment_accounts.append(account)
@@ -45,23 +26,20 @@ class Simulation:
         num_months = years * 12
         net_worth_over_time = []
 
-        for month in range(num_months):
-            total_net_worth = sum(account.balance for account in self.investment_accounts)
-            total_net_worth += sum(prop.value for prop in self.properties)
-            total_net_worth += sum(salary.net_salary for salary in self.salaries)
+        total_net_worth = sum(account.balance for account in self.investment_accounts) + sum(prop.principal for prop in self.properties)
 
+        for month in range(1, num_months+1):
+            if month % 12 == 0: # end of year
+                self.investment_accounts[0].update_balance(True)
+                sum(account.balance for account in self.investment_accounts) 
+            else:
+                self.investment_accounts[0].update_balance(False)
+
+            sal = self.salaries[0]
+            sal.add_post_tax_amount(159.54*12)
+            net_salary = sal.monthly_net_salary(.05)
+            total_net_worth += net_salary
             net_worth_over_time.append(total_net_worth)
-
-            for account in self.investment_accounts:
-                account.deduct_fees()
-                account.balance = account.calculate_returns()
-
-            for prop in self.properties:
-                monthly_payment = prop.calculate_monthly_payment()
-                prop.mortgage_amount -= monthly_payment
-
-            for salary in self.salaries:
-                salary.net_salary *= 1 + salary.annual_increase / 100
 
         return net_worth_over_time
 
@@ -77,7 +55,10 @@ def on_run_simulation_button():
     # Fetch user inputs and create objects
     # ...
 
-    simulation = Simulation()
+    simulation = Simulation(0)
+    simulation.add_investment_account(PensionInvestmentAccount(67000, 875, 15000, 0.05, 0.0075))
+    simulation.add_property(mortgage_calculator(375000, 30, 0.0405))
+    simulation.add_salary(Salary(70000,6000))
     # Add investment accounts, properties, and salaries to the simulation
     # ...
 

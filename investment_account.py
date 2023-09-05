@@ -10,7 +10,6 @@ class InvestmentAccount:
     def calculate_returns(self):
         return self.balance * (1 + self.monthly_return)
 
-
 class PensionInvestmentAccount:
     def __init__(self, balance, monthly_contribution, bonus_contribution, annual_return, management_fee_pct):
         self.balance = balance
