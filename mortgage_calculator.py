@@ -3,21 +3,58 @@ import pandas as pd
 class mortgage_calculator:
 
     def __init__(self, balance, mortgage_term, interest_pct, overpayment_amount = 0, overpayment_years = 0):
-        self.balance = balance
-        self.mortgage_term = mortgage_term
+        self.balance = balance # remaining to pay
+        self.mortgage_term = mortgage_term # amount in years
+        self.remaining_term = mortgage_term * 12 # mortgage term remaining in months
         self.interest_pct = interest_pct
-        self.overpayment_amount = overpayment_amount
-        self.overpayment_years = overpayment_years
+        self.overpayment_amount = overpayment_amount # the amount per month we're overpaying over the principal amount
+        self.overpayment_years = overpayment_years # how many years we are overpaying for
         self.monthly_payment = self._monthly_payment(self.interest_pct, self.mortgage_term, self.balance)
         self.interest_amt = self._interest_amount_calc(self.balance, self.interest_pct)
-        self.principal = self._principal(self.monthly_payment, self.interest_amt)
+        self.principal = self._principal(self.monthly_payment, self.interest_amt, self.overpayment_amount)
         self.end_balance = self._end_balance(self.balance, self.principal)
 
-    def calculate(self):
+    def update(self):
+        '''updates the remaining balance, allowed overpayment if applicable
+        interest and principal amount etc'''
+        overpayment_term = self.overpayment_years * 12
 
+        if self.remaining_term % 12 == 0: # a year has passed. recalculate the maximum allowable overpayment 
+            if self.overpayment_amount*12 <= self.end_balance * .1: # can maximum overpay 10% of the outstanding balance
+                            pass
+            else:
+                self.overpayment_amount = round(self.end_balance*.1/12,0)
+
+        if self.end_balance > 0:
+            self.balance = self.end_balance
+        else:
+            self.balance = 0 
+
+        self.interest_amt = self._interest_amount_calc(self.balance, self.interest_pct)
+
+        if overpayment_term > 0:
+            self.principal = self._principal(self.monthly_payment, self.interest_amt, self.overpayment_amount)
+            self.end_balance = self._end_balance(self.balance, self.principal, self.overpayment_amount)
+            overpayment_term -=1
+
+        else:
+            self.principal = self._principal(self.monthly_payment, self.interest_amt, self.overpayment_amount)
+            self.end_balance = self._end_balance(self.balance, self.principal)
+            self.overpayment_amount = 0
+
+        if self.end_balance <0:
+            self.balance = 0
+            self.interest_amt = 0
+            self.principal = 0
+            self.end_balance = 0
+            self.overpayment_amount = 0
+            
+        self.remaining_term -= 1
+
+    def amortization_schedule(self):
+        '''returns the amortization schedule in a pandas dataframe'''
         balance_series = [self.balance]
         interest_series = [self.interest_amt]
-        monthly_payment_series = [self.monthly_payment]
         principal_series = [self.principal]
         end_balance_series = [self.end_balance]
         overpayment_series = [self.overpayment_amount]
@@ -122,4 +159,7 @@ class mortgage_calculator:
 
 if __name__ == '__main__':
     test = mortgage_calculator(375000, 30, 0.0405, 1000, 5)
-    print(test.calculate())
+    for i in range(24):
+        test.update()
+        # print(test.principal)
+    print(test.amortization_schedule())

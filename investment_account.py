@@ -41,7 +41,7 @@ class PensionInvestmentAccount:
 
 
 if __name__ == "__main__":
-    test = PensionInvestmentAccount(70000, 800, 15000, 0.05, 0.01)
+    test = PensionInvestmentAccount(70000, 800, 15000, 0.05, 0.0075)
 
     l = [test.balance] 
 
